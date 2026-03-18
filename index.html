@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CAM3R: Camera-Agnostic Model for 3D Reconstruction</title>
+  <style>
+    /* ── Reset & Base ───────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      background: linear-gradient(to bottom, #ffffff 0%, #f0f2f5 100%);
+      color: #222;
+      line-height: 1.7;
+      min-height: 100vh;
+    }
+
+    a { color: #1a73e8; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ── Layout ─────────────────────────────────────────── */
+    .container {
+      max-width: 1200px; 
+      margin: 0 auto;
+      padding: 0 32px;
+    }
+
+    section {
+      padding: 56px 0 40px;
+      border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+    section:last-of-type { border-bottom: none; }
+
+    /* ── Header / Title ─────────────────────────────────── */
+    header {
+      background: #ffffff;
+      padding: 60px 24px 48px;
+      text-align: center;
+      border-bottom: 1px solid #e0e0e0;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    }
+
+    header h1 {
+      font-size: 2.6rem;
+      font-weight: 700;
+      line-height: 1.3;
+      color: #111;
+      max-width: 980px;
+      margin: 0 auto 20px;
+    }
+
+    .authors {
+      font-size: 1.2rem;
+      color: #444;
+      margin-bottom: 8px;
+    }
+    
+    .authors a {
+      color: #1a73e8;
+      transition: color 0.2s;
+    }
+    
+    .authors a:hover {
+      color: #1152a8;
+      text-decoration: underline;
+    }
+
+    .affiliations {
+      font-size: 1.05rem;
+      color: #666;
+      margin-bottom: 24px;
+    }
+
+    .links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 20px;
+      border-radius: 6px;
+      font-size: 0.92rem;
+      font-weight: 500;
+      border: 1.5px solid #1a73e8;
+      color: #1a73e8;
+      transition: background 0.2s, color 0.2s;
+    }
+    .btn:hover { background: #1a73e8; color: #fff; text-decoration: none; }
+    .btn svg { width: 16px; height: 16px; fill: currentColor; }
+
+    /* ── Section Headings ───────────────────────────────── */
+    h2 {
+      font-size: 1.85rem;
+      font-weight: 700;
+      margin-bottom: 24px;
+      color: #111;
+      text-align: center;
+    }
+
+    h3 {
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin: 0 0 16px;
+      color: #333;
+      text-align: center;
+    }
+
+    /* ── Figures & Click-to-Zoom Overlay ────────────────── */
+    figure {
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .image-link {
+      position: relative;
+      display: block;
+      width: 100%;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      cursor: zoom-in;
+    }
+
+    .image-link::after {
+      content: "Click to open in full resolution";
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.65);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.05rem;
+      font-weight: 500;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .image-link:hover::after {
+      opacity: 1;
+    }
+
+    figure img {
+      display: block;
+      width: 100%;
+      height: auto;
+      background: #f8f9fa;
+      transition: transform 0.3s ease;
+    }
+    
+    .image-link:hover img {
+      transform: scale(1.02);
+    }
+
+    #teaser .image-link { max-width: 70%; margin: 0 auto; }
+
+    figcaption {
+      margin-top: 12px;
+      font-size: 0.95rem;
+      color: #555;
+      line-height: 1.5;
+      text-align: justify;
+      width: 100%;
+    }
+
+    figcaption strong { color: #222; }
+
+    /* ── Abstract & Text Blocks ─────────────────────────── */
+    .text-block p {
+      font-size: 1.15rem;
+      text-align: justify;
+      max-width: 950px;
+      margin: 0 auto;
+      color: #444;
+    }
+
+    /* ── Layout: Side by Side (Tables & Images) ─────────── */
+    .side-by-side {
+      display: flex;
+      flex-direction: row;
+      gap: 32px;
+      align-items: center;
+      margin-bottom: 48px;
+    }
+    
+    .side-by-side > div,
+    .side-by-side > figure {
+      flex: 1;
+      min-width: 0;
+    }
+
+    /* ── Layout: 3-Column Grid ──────────────────────────── */
+    .vis-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      margin-top: 24px;
+    }
+
+    /* ── Tables ─────────────────────────────────────────── */
+    .table-wrapper {
+      overflow-x: auto;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      border-radius: 8px;
+      background: #fff;
+      width: 100%;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem; 
+    }
+
+    caption {
+      caption-side: bottom;
+      font-size: 0.9rem;
+      color: #555;
+      text-align: left; 
+      padding: 12px 0 0;
+      line-height: 1.4;
+    }
+    caption strong { color: #222; }
+
+    thead tr {
+      background: #f8f9fa;
+      border-bottom: 2px solid #dce2ee;
+    }
+
+    th, td {
+      padding: 8px 6px; 
+      border: 1px solid #edf1f7;
+      text-align: center;
+    }
+
+    th {
+      font-weight: 600;
+      color: #333;
+    }
+
+    tbody tr:nth-child(even) { background: #fafbfc; }
+    tbody tr:hover { background: #f0f4ff; }
+
+    .best { font-weight: 700; color: #1a56db; }
+
+    /* ── Footer ─────────────────────────────────────────── */
+    footer {
+      text-align: center;
+      padding: 32px 16px;
+      font-size: 0.85rem;
+      color: #777;
+      border-top: 1px solid #e0e0e0;
+      background: #fafafa;
+    }
+
+    /* ── Responsive ─────────────────────────────────────── */
+    @media (max-width: 900px) {
+      .side-by-side { flex-direction: column; } 
+      .vis-grid { grid-template-columns: 1fr; } 
+      #teaser .image-link { max-width: 100%; }
+    }
+    
+    @media (max-width: 640px) {
+      header h1 { font-size: 1.8rem; }
+      h2 { font-size: 1.4rem; }
+      h3 { font-size: 1.1rem; }
+      .text-block p { text-align: left; } 
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>CAM3R: Camera-Agnostic Model for 3D Reconstruction</h1>
+
+    <p class="authors">
+      <a href="https://scholar.google.com/citations?user=baHP-noAAAAJ&hl=en&oi=ao" target="_blank" rel="noopener">Namitha Guruprasad</a><sup>1</sup>,&nbsp;
+      <a href="https://scholar.google.com/citations?user=pbRu-GQAAAAJ&hl=en&oi=ao" target="_blank" rel="noopener">Abhay Yadav</a><sup>1</sup>,&nbsp;
+      <a href="https://scholar.google.com/citations?user=HiQ4T3wAAAAJ&hl=en&oi=sra" target="_blank" rel="noopener">Cheng Peng</a><sup>2</sup>,&nbsp;
+      <a href="https://scholar.google.com/citations?user=L60tuywAAAAJ&hl=en" target="_blank" rel="noopener">Rama Chellappa</a><sup>1</sup>
+    </p>
+    <p class="affiliations">
+      <sup>1</sup>Johns Hopkins University, USA,&nbsp;
+      <sup>2</sup>University of Virginia, USA
+    </p>
+
+    <div class="links">
+      <a class="btn" href="#" aria-label="arXiv preprint">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm0 2a8 8 0 1 1 0 16A8 8 0 0 1 12 4zm-1 3v6l5 3-1 1.73-6-3.5V7h2z"/>
+        </svg>
+        arXiv
+      </a>
+      <a class="btn" href="#" aria-label="Source code on GitHub">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 .5C5.65.5.5 5.65.5 12c0 5.1 3.31 9.42 7.9 10.95.58.1.79-.25.79-.55v-2.08c-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.69-1.28-1.69-1.05-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.76 2.7 1.25 3.36.96.1-.75.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.7 0-1.26.45-2.29 1.19-3.09-.12-.3-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.19a11.1 11.1 0 0 1 5.8 0c2.2-1.5 3.17-1.19 3.17-1.19.63 1.59.23 2.75.12 3.05.74.8 1.19 1.83 1.19 3.09 0 4.43-2.7 5.41-5.27 5.69.42.36.79 1.07.79 2.16v3.2c0 .31.21.67.8.55C20.19 21.42 23.5 17.1 23.5 12 23.5 5.65 18.35.5 12 .5z"/>
+        </svg>
+        Code
+      </a>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <section id="teaser">
+      <figure>
+        <a href="assets/images/teaser_image_corrected.jpg" target="_blank" class="image-link" aria-label="Open image in full resolution">
+          <img src="assets/images/teaser_image_corrected.jpg" alt="CAM3R teaser showing two-view and multi-view 3D reconstruction" />
+        </a>
+        <figcaption>
+          <strong>Fig. 1 — </strong>CAM3R provides a robust, feed-forward 3D reconstruction for two-view and multi-view scenarios across disparate optical manifolds, including pinhole, fisheye and panoramic cameras, where recent 3D foundation models fail. Above, we highlight CAM3R's performance on unseen scenes from the 360Loc dataset, visualizing both raw two-view predictions and multi-view reconstructions.
+        </figcaption>
+      </figure>
+    </section>
+
+    <section id="abstract" class="text-block">
+      <h2>Abstract</h2>
+      <p>
+        Recovering dense 3D geometry from unposed images remains a foundational challenge in computer vision. Current state-of-the-art models are predominantly trained on perspective datasets, which implicitly constrains them to a standard pinhole camera geometry. As a result, these models suffer from significant geometric degradation when applied to wide-angle imagery captured via non-rectilinear optics, such as fisheye or panoramic sensors. To address this, we present CAM3R, a Camera-Agnostic, feed-forward Model for 3D Reconstruction capable of processing images from wide-angle camera models without prior calibration. Our framework consists of a two-view network which is bifurcated into a Ray Module (RM) to estimate per-pixel ray directions and a Cross-view Module (CVM) to infer radial distance with confidence maps, pointmaps, and relative poses. To unify these pairwise predictions into a consistent 3D scene, we introduce a Ray-Aware Global Alignment framework for pose refinement and scale optimization while strictly preserving the predicted local geometry. Extensive experiments on various camera model datasets, including panorama, fisheye and pinhole imagery, demonstrate that CAM3R establishes a new state-of-the-art in pose estimation and reconstruction.
+      </p>
+    </section>
+
+    <section id="pipeline">
+      <h2>Overview</h2>
+      <figure>
+        <a href="assets/images/pipeline_image_corrected.jpg" target="_blank" class="image-link" aria-label="Open image in full resolution">
+          <img src="assets/images/pipeline_image_corrected.jpg" alt="CAM3R pipeline showing shared ray module and cross-view module" />
+        </a>
+        <figcaption>
+          <strong>Fig. 2 — CAM3R Overview.</strong>
+          Given an input image pair <i>(I<sub>1</sub>, I<sub>2</sub>)</i>, the framework operates through two parallel streams. The <i><strong>Shared Ray Module</strong></i> recovers the internal camera geometry by regressing Spherical Harmonic coefficients to reconstruct continuous ray directional fields <strong>d</strong><sub>i</sub>. Simultaneously, the <i><strong>Cross-view Module</strong></i> extracts features and utilizes a dual-block transformer decoder to facilitate information exchange between the two views. Specialized DPT heads then regress radial distances <strong>r</strong><sub>i</sub> with confidence maps <i>σ<sub>i</sub></i>, while a Relative Pose Network estimates the rigid transformation <i>P<sub>2 &rarr; 1</sub></i>. The local pointmaps <strong>X</strong><sup>i,i</sup> are generated by fusing rays <strong>d</strong><sub>i</sub> with radial distances <strong>r</strong><sub>i</sub>. Finally, the second view is transformed into the reference coordinate frame of the first view via <i>P<sub>2 &rarr; 1</sub></i> to produce the globally aligned 3D reconstruction.
+        </figcaption>
+      </figure>
+    </section>
+
+    <section id="evaluation">
+      <h2>Evaluation</h2>
+
+      <h3>Two-view Reconstruction</h3>
+      <div class="side-by-side">
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th rowspan="2">Model</th>
+                <th colspan="2">2D3DS</th>
+                <th colspan="2">MegaDepth</th>
+                <th colspan="2">CO3Dv2</th>
+                <th colspan="2">360Loc</th>
+                <th colspan="2">ADT</th>
+              </tr>
+              <tr>
+                <th>RRA</th><th>RTA</th>
+                <th>RRA</th><th>RTA</th>
+                <th>RRA</th><th>RTA</th>
+                <th>RRA</th><th>RTA</th>
+                <th>RRA</th><th>RTA</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>DUSt3R</strong></td>
+                <td>10.6</td><td>6.0</td>
+                <td>95.6</td><td>80.8</td>
+                <td>94.7</td><td>43.1</td>
+                <td>0.0</td><td>0.0</td>
+                <td>91.0</td><td>63.6</td>
+              </tr>
+              <tr>
+                <td><strong>MASt3R</strong></td>
+                <td>18.3</td><td>9.3</td>
+                <td>69.7</td><td>56.4</td>
+                <td class="best">98.4</td><td>33.4</td>
+                <td>39.8</td><td>5.3</td>
+                <td>96.6</td><td>63.5</td>
+              </tr>
+              <tr>
+                <td><strong>Pow3R</strong></td>
+                <td>7.5</td><td>6.0</td>
+                <td>96.2</td><td>74.2</td>
+                <td>95.8</td><td>38.3</td>
+                <td>0.0</td><td>0.0</td>
+                <td>96.6</td><td>79.2</td>
+              </tr>
+              <tr>
+                <td><strong>VGGT</strong></td>
+                <td>11.8</td><td>11.0</td>
+                <td>98.0</td><td>88.2</td>
+                <td>90.9</td><td>29.4</td>
+                <td>37.8</td><td>11.1</td>
+                <td>92.7</td><td>82.9</td>
+              </tr>
+              <tr>
+                <td><strong>π³</strong></td>
+                <td>16.8</td><td>11.4</td>
+                <td class="best">99.8</td><td>93.3</td>
+                <td>90.7</td><td>22.7</td>
+                <td>38.5</td><td>13.0</td>
+                <td>97.5</td><td>93.8</td>
+              </tr>
+              <tr>
+                <td><strong>CAM3R</strong></td>
+                <td class="best">97.7</td><td class="best">94.3</td>
+                <td>96.8</td><td class="best">94.2</td>
+                <td>97.5</td><td class="best">88.2</td>
+                <td class="best">96.0</td><td class="best">91.0</td>
+                <td class="best">99.0</td><td class="best">95.0</td>
+              </tr>
+            </tbody>
+            <caption>
+              <strong>Table 1 — Two-view results.</strong> Accuracy at 15° (RRA/RTA).
+            </caption>
+          </table>
+        </div>
+
+        <figure>
+          <a href="assets/images/two_view.jpg" target="_blank" class="image-link" aria-label="Open image in full resolution">
+            <img src="assets/images/two_view.jpg" alt="Qualitative two-view 3D reconstructions" />
+          </a>
+          <figcaption>
+            <strong>Fig. 3 — Qualitative Two-View Reconstructions.</strong> Visualization of 3D point clouds for image pairs across diverse optical manifolds (panorama, fisheye, pinhole). Despite extreme radial distortions and camera geometries, relative poses are accurately recovered and structural consistency is maintained. <i>Note this is the raw output of the network.</i>
+          </figcaption>
+        </figure>
+      </div>
+
+      <h3>Multi-view Reconstruction</h3>
+      <div class="side-by-side">
+        <figure>
+          <a href="assets/images/multiview.jpg" target="_blank" class="image-link" aria-label="Open image in full resolution">
+            <img src="assets/images/multiview.jpg" alt="Qualitative multi-view 3D reconstructions" />
+          </a>
+          <figcaption>
+            <strong>Fig. 4 — Qualitative Multi-View Reconstructions.</strong> Global camera trajectories and dense point clouds recovered from unstructured image pools across diverse datasets. Despite high radial distortion and lack of scenegraph information, globally consistent poses and structural geometry are maintained through the Ray-Aware Global Alignment, effectively mitigating trajectory drift and scale ambiguity.
+          </figcaption>
+        </figure>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th rowspan="2">Model</th>
+                <th colspan="3">2D3DS</th>
+                <th colspan="3">MegaDepth</th>
+                <th colspan="3">360Loc</th>
+              </tr>
+              <tr>
+                <th>RRA</th><th>RTA</th><th>mAA</th>
+                <th>RRA</th><th>RTA</th><th>mAA</th>
+                <th>RRA</th><th>RTA</th><th>mAA</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>VGGT</strong></td>
+                <td>31.8</td><td>34.4</td><td>7.6</td>
+                <td class="best">100</td><td>97.4</td><td>68.8</td>
+                <td>47.9</td><td>50.8</td><td>19.5</td>
+              </tr>
+              <tr>
+                <td><strong>π³</strong></td>
+                <td>40.0</td><td>35.8</td><td>9.6</td>
+                <td class="best">100</td><td class="best">98.4</td><td>73.4</td>
+                <td>48.6</td><td>47.4</td><td>17.8</td>
+              </tr>
+              <tr>
+                <td><strong>CAM3R</strong></td>
+                <td class="best">94.0</td><td class="best">91.5</td><td class="best">73.5</td>
+                <td>96.6</td><td>96.3</td><td class="best">87.4</td>
+                <td class="best">98.7</td><td class="best">91.2</td><td class="best">82.6</td>
+              </tr>
+            </tbody>
+            <caption>
+              <strong>Table 2 — Multi-view results.</strong> Accuracy at 30° and mAA.
+            </caption>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="visualizations">
+      <h2>Additional Visualizations</h2>
+      <div class="vis-grid">
+        <figure>
+          <a href="assets/images/supplementary_multiview_zeroshot.jpg" target="_blank" class="image-link" aria-label="Open image in full resolution">
+            <img src="assets/images/supplementary_multiview_zeroshot.jpg" alt="Zero-shot multi-view reconstructions on Matterport, FIORD, and CO3Dv2" />
+          </a>
+          <figcaption>
+            <strong>Fig. 5 — Zero-shot generalization to unseen datasets.</strong> CAM3R successfully recovers dense 3D point clouds on Matterport, FIORD, and CO3Dv2 despite no multi-view training on these domains. While the Ray Module leverages prior exposure to Matterport's optical manifold via UniK3D initialization, the Cross-View Module demonstrates true zero-shot structural generalization. Notably, in the FIORD dataset, CAM3R unwraps extreme 2D fisheye aberrations, strictly preserving rectilinear structures (e.g., straight walls and sharp corners) in 3D space. To simulate unconstrained real-world environments, these scenes contain a heterogeneous mix of panoramic, fisheye, and pinhole captures. Multiple viewing angles are provided to highlight the structural integrity of the reconstructions.
+          </figcaption>
+        </figure>
+
+        <figure>
+          <a href="assets/images/supplementary_multiview_indomain.jpg" target="_blank" class="image-link" aria-label="Open image in full resolution">
+            <img src="assets/images/supplementary_multiview_indomain.jpg" alt="In-domain multi-view reconstructions" />
+          </a>
+          <figcaption>
+            <strong>Fig. 6 — In-domain multi-view 3D reconstructions.</strong> Extended qualitative results from the 360Loc, ADT, and MegaDepth test splits demonstrate CAM3R's robustness. In 360Loc, the model reconstructs expansive concourse regions despite the prevalence of smooth, highly reflective, and textureless surfaces that typically break traditional matching heuristics. For ADT, which features enclosed room scenes with dense, short-baseline egocentric fisheye captures, our rigorous scene-graph pruning yield a coherent pointcloud. Multiple viewing angles are provided to illustrate the dense coverage and structural consistency of the fused multi-modal outputs.
+          </figcaption>
+        </figure>
+
+        <figure>
+          <a href="assets/images/supplementary_2view.jpg" target="_blank" class="image-link" aria-label="Open image in full resolution">
+            <img src="assets/images/supplementary_2view.jpg" alt="Two-view reconstructions with cross-modal correspondences" />
+          </a>
+          <figcaption>
+            <strong>Fig. 7 — Raw two-view reconstructions and cross-modal correspondences.</strong> We visualize constituent image pairs from the multi-view scenes evaluated in Fig. 6. CAM3R demonstrates robustness in recovering two-view relative geometry not only for homogeneous pairs (panorama-panorama, fisheye-fisheye, pinhole-pinhole) but crucially across highly heterogeneous projection models (e.g., panorama-pinhole and panorama-fisheye in 360Loc). We overlay 3D-3D Mutual Nearest Neighbor (MNN) matches utilized during our graph pruning phase, color-coded by the network's predicted distance (brighter yellow indicates stronger matches and closer points in 3D). <i>Note: These visualizations represent the raw, feed-forward output of the two-view network prior to Ray-Aware Global Alignment.</i>
+          </figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section id="acknowledgement" class="text-block">
+      <h2>Acknowledgements</h2>
+      <p>
+        We thank Anand Bhattad for helpful discussions and valuable feedback. This research is based upon work supported by the Office of the Director of National Intelligence (ODNI), Intelligence Advanced Research Projects Activity (IARPA), via IARPA R&amp;D Contract No. 140D0423C0076. The views and conclusions contained herein are those of the authors and should not be interpreted as necessarily representing the official policies or endorsements, either expressed or implied, of the ODNI, IARPA, or the U.S. Government. The U.S. Government is authorized to reproduce and distribute reprints for Governmental purposes notwithstanding any copyright annotation thereon.
+      </p>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>
+      &copy; 2026 CAM3R Authors &mdash; All rights reserved. &nbsp;|&nbsp;
+      Website source available on
+      <a href="https://github.com/nam1410/cam3r_web" target="_blank" rel="noopener">GitHub</a>.
+    </p>
+  </footer>
+
+</body>
+</html>
