@@ -132,10 +132,6 @@ h2 .num {
 h3 { font-family: var(--serif); font-size: 20px; font-weight: 600; margin: 34px 0 8px; }
 p.lede { color: var(--ink-soft); margin: 0 0 26px; }
 
-.prose p { margin: 0 0 18px; }
-.prose { font-size: 17.5px; }
-.abstract { font-family: var(--serif); font-size: 18.5px; line-height: 1.72; }
-
 figure { margin: 0; }
 figure img { border-radius: 8px; border: 1px solid var(--line); }
 figcaption {
@@ -269,19 +265,6 @@ p code, li code, td code {
   margin: 24px 0 0;
 }
 .callout strong { color: var(--ink); }
-
-/* ---------- bibtex ---------- */
-
-pre.bib {
-  background: var(--bg-soft);
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  padding: 18px 20px;
-  overflow-x: auto;
-  font-family: var(--mono); font-size: 13px; line-height: 1.65;
-  color: var(--ink-soft);
-  margin: 0;
-}
 
 footer {
   border-top: 1px solid var(--line);

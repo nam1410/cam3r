@@ -27,12 +27,9 @@
 <nav class="topbar">
   <div class="wrap">
     <span class="brand">CAM3R</span>
-    <a href="#abstract">Abstract</a>
-    <a href="#method">Method</a>
     <a href="#twoview">Two-view</a>
     <a href="#zeroshot">Zero-shot</a>
     <a href="#multiview">Multi-view</a>
-    <a href="#citation">BibTeX</a>
     <a href="https://github.com/nam1410/cam3r">Code</a>
   </div>
 </nav>
@@ -73,66 +70,9 @@
   </div>
 </section>
 
-<section id="abstract">
-  <div class="wrap narrow">
-    <h2><span class="num">01</span>Abstract</h2>
-    <div class="prose abstract">
-      <p>Recovering dense 3D geometry from unposed images remains a foundational challenge in
-      computer vision. Current state-of-the-art models are predominantly trained on perspective
-      datasets, which implicitly constrains them to a standard pinhole camera geometry. As a
-      result, these models suffer from significant geometric degradation when applied to
-      wide-angle imagery captured via non-rectilinear optics, such as fisheye or panoramic
-      sensors. To address this, we present CAM3R, a Camera-Agnostic, feed-forward Model for 3D
-      Reconstruction capable of processing images from wide-angle camera models without prior
-      calibration. Our framework consists of a two-view network which is bifurcated into a Ray
-      Module (RM) to estimate per-pixel ray directions and a Cross-view Module (CVM) to infer
-      radial distance with confidence maps, pointmaps, and relative poses. To unify these
-      pairwise predictions into a consistent 3D scene, we introduce a Ray-Aware Global Alignment
-      framework for pose refinement and scale optimization while strictly preserving the
-      predicted local geometry. Extensive experiments on various camera model datasets,
-      including panorama, fisheye and pinhole imagery, demonstrate that CAM3R establishes a new
-      state-of-the-art in pose estimation and reconstruction.</p>
-    </div>
-  </div>
-</section>
-
-<section id="method">
-  <div class="wrap">
-    <h2><span class="num">02</span>Method</h2>
-    <p class="lede narrow" style="margin-left:0">Two modules, one feed-forward pass.</p>
-
-    <figure class="center">
-      <img src="assets/pipeline.jpg" width="1600" alt="CAM3R architecture: a shared Ray Module regressing spherical-harmonic ray fields, and a Cross-view Module with a dual transformer decoder regressing radial distance, confidence and relative pose">
-    </figure>
-
-    <div class="prose narrow" style="margin-top:26px">
-      <p><strong>The Ray Module</strong> answers what each camera sees. A geometric encoder
-      produces class tokens, two transformer ray-encoder layers regress spherical-harmonic
-      expansion coefficients, and an inverse SH transform reconstructs a continuous per-pixel
-      field of unit ray directions. Because the field is expressed in a continuous basis rather
-      than through a parametric lens model, one set of weights covers equirectangular
-      panoramas, fisheye captures and pinhole photographs alike. The module is shared across
-      both views.</p>
-
-      <p><strong>The Cross-view Module</strong> answers where the geometry is and where the
-      other camera stands. A Siamese encoder extracts features from both views and a dual
-      transformer decoder alternates self-attention and cross-attention so each branch is
-      conditioned on the other. DPT heads regress a per-pixel radial distance together with a
-      confidence map, and a relative pose head estimates the rigid transform from the second
-      view into the first. Radial distance is used instead of Z-depth because Z-depth is
-      ill-defined once the field of view approaches a hemisphere.</p>
-
-      <p>A local pointmap is then simply the product of the two: the ray direction scaled by
-      its radial distance. Lens geometry and scene geometry stay factorised rather than
-      entangled in a single Cartesian regression, and mapping the second view through the
-      predicted pose yields the aligned two-view reconstruction shown below.</p>
-    </div>
-  </div>
-</section>
-
 <section id="twoview">
   <div class="wrap">
-    <h2><span class="num">03</span>Interactive two-view results</h2>
+    <h2><span class="num">01</span>Interactive two-view results</h2>
     <p class="lede">
       One representative pair for each camera-model combination, with the prediction and the
       ground truth side by side in the browser. Drag to orbit, scroll to zoom, right-drag to
@@ -210,20 +150,15 @@
 
 <section id="zeroshot">
   <div class="wrap">
-    <h2><span class="num">04</span>Interactive zero-shot results</h2>
+    <h2><span class="num">02</span>Interactive zero-shot results</h2>
     <p class="lede">
-      Arbitrary image pairs run through <code>eval_two_view_zeroshot.py</code>. No poses, no
-      intrinsics, no dataset metadata, and <strong>no ground truth exists for these pairs</strong>,
-      so only the prediction is shown.
+      An arbitrary image pair run through <code>eval_two_view_zeroshot.py</code>, with no
+      poses, no intrinsics and no dataset metadata.
     </p>
 
     <div class="widget" id="zeroshot-widget">
       <div class="tabs" role="tablist" aria-label="Zero-shot example">
-        <button role="tab" aria-selected="true">Egocentric fisheye</button>
-        <button role="tab" aria-selected="false">In-the-wild fisheye</button>
-        <button role="tab" aria-selected="false">Outdoor pinhole</button>
-        <button role="tab" aria-selected="false">Panorama + fisheye</button>
-        <button role="tab" aria-selected="false">Quick-start pair</button>
+        <button role="tab" aria-selected="true">Quick-start pair</button>
       </div>
 
       <div class="example-head">
@@ -232,8 +167,8 @@
       </div>
 
       <div class="pair-imgs">
-        <figure><img data-slot="view0" src="assets/zeroshot/aria/view0.jpg" alt=""></figure>
-        <figure><img data-slot="view1" src="assets/zeroshot/aria/view1.jpg" alt=""></figure>
+        <figure><img data-slot="view0" src="assets/zeroshot/quickstart/view0.jpg" alt=""></figure>
+        <figure><img data-slot="view1" src="assets/zeroshot/quickstart/view1.jpg" alt=""></figure>
       </div>
 
       <div class="viewer-toolbar">
@@ -246,14 +181,14 @@
 
       <div class="stage single">
         <div class="panel">
-          <span class="tag">CAM3R prediction &middot; no ground truth</span>
+          <span class="tag">CAM3R prediction</span>
           <canvas></canvas>
           <div class="overlay"><div class="spinner"></div><p class="msg">Loading…</p></div>
         </div>
       </div>
 
       <div class="strip">
-        <img data-slot="matches" src="assets/zeroshot/aria/matches.jpg" alt="">
+        <img data-slot="matches" src="assets/zeroshot/quickstart/matches.jpg" alt="">
         <p class="cap">
           The 2&times;3 diagnostic panel written alongside the point cloud: each input image,
           its mutual-nearest-neighbour match quality map, and the two blended together.
@@ -265,7 +200,7 @@
 
 <section id="multiview">
   <div class="wrap">
-    <h2><span class="num">05</span>Multi-view reconstruction</h2>
+    <h2><span class="num">03</span>Multi-view reconstruction</h2>
     <p class="lede narrow" style="margin-left:0">
       Ray-Aware Global Alignment fuses the pairwise predictions above into a single globally
       consistent scene by optimising poses and per-image scales with the ray directions frozen,
@@ -281,18 +216,6 @@
       <strong>Note.</strong> The global alignment code is not part of the current release; this
       repository provides the two-view network it is built on.
     </p>
-  </div>
-</section>
-
-<section id="citation">
-  <div class="wrap narrow">
-    <h2><span class="num">06</span>BibTeX</h2>
-    <pre class="bib">@article{guruprasad2026cam3r,
-  title   = {CAM3R: Camera-Agnostic Model for 3D Reconstruction},
-  author  = {Guruprasad, Namitha and Yadav, Abhay and Chellappa, Rama and Peng, Cheng},
-  journal = {arXiv preprint arXiv:TBD},
-  year    = {2026}
-}</pre>
   </div>
 </section>
 
@@ -342,18 +265,6 @@ const TWOVIEW = [
 ];
 
 const ZEROSHOT = [
-  { key: 'aria', name: 'Egocentric fisheye pair', source: 'Aria Digital Twin',
-    view0: 'assets/zeroshot/aria/view0.jpg', view1: 'assets/zeroshot/aria/view1.jpg',
-    matches: 'assets/zeroshot/aria/matches.jpg', pred: 'assets/zeroshot/aria/pred.ply' },
-  { key: 'fiord', name: 'In-the-wild fisheye pair', source: 'handheld capture, no calibration',
-    view0: 'assets/zeroshot/fiord/view0.jpg', view1: 'assets/zeroshot/fiord/view1.jpg',
-    matches: 'assets/zeroshot/fiord/matches.jpg', pred: 'assets/zeroshot/fiord/pred.ply' },
-  { key: 'megadepth', name: 'Outdoor pinhole pair', source: 'MegaDepth',
-    view0: 'assets/zeroshot/megadepth/view0.jpg', view1: 'assets/zeroshot/megadepth/view1.jpg',
-    matches: 'assets/zeroshot/megadepth/matches.jpg', pred: 'assets/zeroshot/megadepth/pred.ply' },
-  { key: 'panofish', name: 'Panorama and fisheye pair', source: '360Loc',
-    view0: 'assets/zeroshot/panofish/view0.jpg', view1: 'assets/zeroshot/panofish/view1.jpg',
-    matches: 'assets/zeroshot/panofish/matches.jpg', pred: 'assets/zeroshot/panofish/pred.ply' },
   { key: 'quickstart', name: 'Quick-start pair', source: 'the two images used to verify a fresh install',
     view0: 'assets/zeroshot/quickstart/view0.jpg', view1: 'assets/zeroshot/quickstart/view1.jpg',
     matches: 'assets/zeroshot/quickstart/matches.jpg', pred: 'assets/zeroshot/quickstart/pred.ply' }
