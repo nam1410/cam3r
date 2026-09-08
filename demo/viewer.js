@@ -32,6 +32,15 @@ import { PLYLoader } from 'three/addons/loaders/PLYLoader.js';
 
 const DEFAULT_POINT_SIZE = 0.010;
 
+/* The four panels of the multi-view comparison, in display order. The keys
+   are the filename stems under assets/multiview/. */
+const MULTIVIEW_METHODS = [
+  ['gt', 'ground truth'],
+  ['vggt', 'VGGT'],
+  ['pi3', '\u03c0\u00b3'],
+  ['cam3r', 'CAM3R']
+];
+
 /* ------------------------------------------------------------------ panel */
 
 function makePanel(el) {
@@ -296,6 +305,18 @@ function wireSection(rootId, examples, urlsFor, labelsFor, onSelect) {
   const resetBtn = root.querySelector('button[data-action="reset"]');
   if (resetBtn) resetBtn.addEventListener('click', () => rig.home());
 
+  wireTabs(root, (i) => {
+    onSelect(root, examples[i]);
+    rig.request(urlsFor(examples[i]), labelsFor(examples[i]));
+  });
+  return rig;
+}
+
+/**
+ * Wire a .tabs strip inside root: click and left/right arrow selection, with
+ * aria-selected kept in sync and the first tab chosen on load.
+ */
+function wireTabs(root, onIndex) {
   const tabs = Array.from(root.querySelectorAll('.tabs button'));
   let current = -1;
 
@@ -303,8 +324,7 @@ function wireSection(rootId, examples, urlsFor, labelsFor, onSelect) {
     if (i === current) return;
     current = i;
     tabs.forEach((b, j) => b.setAttribute('aria-selected', String(j === i)));
-    onSelect(root, examples[i]);
-    rig.request(urlsFor(examples[i]), labelsFor(examples[i]));
+    onIndex(i);
   }
 
   tabs.forEach((b, i) => {
@@ -320,7 +340,17 @@ function wireSection(rootId, examples, urlsFor, labelsFor, onSelect) {
   });
 
   select(0);
-  return rig;
+}
+
+/**
+ * A tabbed still-image gallery: same tab interaction as a viewer section, but
+ * with no WebGL involved, so it keeps working in browsers that cannot run the
+ * live viewers.
+ */
+function wireGallery(rootId, examples, onSelect) {
+  const root = document.getElementById(rootId);
+  if (!root) return;
+  wireTabs(root, (i) => onSelect(root, examples[i]));
 }
 
 function checkWebGL() {
@@ -335,8 +365,24 @@ function checkWebGL() {
 
 /* ------------------------------------------------------------------ data */
 
-export function boot(TWOVIEW, ZEROSHOT) {
+export function boot(TWOVIEW, ZEROSHOT, MULTIVIEW) {
   const guard = (fn) => { try { fn(); } catch (err) { console.error('[cam3r]', err); } };
+
+  // Wired before the WebGL check: these are stills, so the comparison works
+  // even where the live viewers cannot start.
+  guard(() => wireGallery(
+    'multiview-widget', MULTIVIEW,
+    (root, ex) => {
+      root.querySelector('[data-slot="name"]').textContent = ex.name;
+      root.querySelector('[data-slot="src"]').textContent = ex.source;
+      MULTIVIEW_METHODS.forEach(([key, label]) => {
+        const img = root.querySelector('[data-slot="' + key + '"]');
+        if (!img) return;
+        img.src = 'assets/multiview/' + ex.key + '_' + key + '.jpg';
+        img.alt = ex.name + ': ' + label + ' multi-view reconstruction';
+      });
+    }
+  ));
 
   if (!checkWebGL()) {
     document.querySelectorAll('.panel .overlay').forEach((o) => {

@@ -193,6 +193,25 @@ p code, li code, td code {
 
 .pair-imgs { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 
+/* ---------- multi-view comparison grid ---------- */
+
+/* Four stills in a row: ground truth plus three methods. The images are
+   pre-fitted to a common 3:2 frame on white, so the row lines up without any
+   per-image sizing here. */
+.shots {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 16px; align-items: start; margin-top: 6px;
+}
+.shots figure img { width: 100%; background: var(--bg-card); border: 1px solid var(--line); }
+.shots figcaption {
+  text-align: center; margin-top: 9px; max-width: none;
+  font-family: var(--mono); font-size: 0.68rem; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--muted);
+}
+.shots figure.ours figcaption { color: var(--accent-strong); font-weight: 700; }
+/* a name that is already lowercase by definition must survive the uppercasing */
+.shots figcaption .sym { text-transform: none; }
+
 /* ---------- viewers ---------- */
 
 .viewer-toolbar {
@@ -291,6 +310,7 @@ footer p:last-child { margin-bottom: 0; }
   .stage { grid-template-columns: 1fr; }
   .panel { aspect-ratio: 4 / 3; min-height: 200px; }
   .pair-imgs { grid-template-columns: 1fr; }
+  .shots { grid-template-columns: repeat(2, 1fr); }
 }
 
 @media (max-width: 640px) {
@@ -302,4 +322,5 @@ footer p:last-child { margin-bottom: 0; }
   section { padding: 40px 0 0; }
   section > .wrap { padding-bottom: 30px; }
   .metric { min-width: 140px; flex: 1 1 140px; }
+  .shots { grid-template-columns: 1fr; }
 }

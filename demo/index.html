@@ -180,6 +180,55 @@
       <figcaption>Multi-view reconstructions from the paper.</figcaption>
     </figure>
 
+    <h3>Ground truth and three methods, side by side</h3>
+    <p class="lede">
+      Full-scene reconstructions: each panel is one whole scene fused from all of its views,
+      not one of the two-view pairs shown earlier on this page. Pick a benchmark to swap all
+      four panels.
+    </p>
+
+    <div class="widget" id="multiview-widget">
+      <div class="tabs" role="tablist" aria-label="Multi-view benchmark">
+        <button role="tab" aria-selected="true">2D3DS</button>
+        <button role="tab" aria-selected="false">360Loc</button>
+        <button role="tab" aria-selected="false">MegaDepth</button>
+        <button role="tab" aria-selected="false">CO3Dv2</button>
+      </div>
+
+      <div class="example-head">
+        <span class="name" data-slot="name"></span>
+        <span class="src" data-slot="src"></span>
+      </div>
+
+      <div class="shots">
+        <figure>
+          <img data-slot="gt" src="assets/multiview/pano2d3ds_gt.jpg"
+               width="800" height="534" loading="lazy" alt="">
+          <figcaption>Ground truth</figcaption>
+        </figure>
+        <figure>
+          <img data-slot="vggt" src="assets/multiview/pano2d3ds_vggt.jpg"
+               width="800" height="534" loading="lazy" alt="">
+          <figcaption>VGGT</figcaption>
+        </figure>
+        <figure>
+          <img data-slot="pi3" src="assets/multiview/pano2d3ds_pi3.jpg"
+               width="800" height="534" loading="lazy" alt="">
+          <figcaption><span class="sym">&#960;&#179;</span></figcaption>
+        </figure>
+        <figure class="ours">
+          <img data-slot="cam3r" src="assets/multiview/pano2d3ds_cam3r.jpg"
+               width="800" height="534" loading="lazy" alt="">
+          <figcaption>CAM3R</figcaption>
+        </figure>
+      </div>
+
+      <p class="viewer-note">
+        Every screenshot is cropped to its content and fitted to a common frame, so the size of
+        a cloud within its panel carries no information about the scene.
+      </p>
+    </div>
+
     <p class="callout">
       <strong>Note.</strong> The global alignment code is not part of the current release; this
       repository provides the two-view network it is built on.
@@ -238,7 +287,14 @@ const ZEROSHOT = [
     matches: 'assets/zeroshot/quickstart/matches.jpg', pred: 'assets/zeroshot/quickstart/pred.ply' }
 ];
 
-boot(TWOVIEW, ZEROSHOT);
+const MULTIVIEW = [
+  { key: 'pano2d3ds',  name: '2D3DS',     source: 'panorama, fisheye and pinhole views' },
+  { key: 'pano360loc', name: '360Loc',    source: 'panorama, fisheye and pinhole views' },
+  { key: 'megadepth',  name: 'MegaDepth', source: 'pinhole views' },
+  { key: 'co3d',       name: 'CO3Dv2',    source: 'fisheye and pinhole views' }
+];
+
+boot(TWOVIEW, ZEROSHOT, MULTIVIEW);
 </script>
 
 </body>
