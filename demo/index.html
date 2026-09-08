@@ -8,10 +8,7 @@
 <meta property="og:title" content="CAM3R: Camera-Agnostic Model for 3D Reconstruction">
 <meta property="og:description" content="Feed-forward 3D reconstruction from two uncalibrated images across panoramic, fisheye and pinhole cameras.">
 <meta property="og:type" content="website">
-<meta property="og:image" content="assets/teaser.jpg">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet">
+<meta property="og:image" content="assets/multiview_results.jpg">
 <link rel="stylesheet" href="style.css">
 <script type="importmap">
 {
@@ -26,7 +23,7 @@
 
 <nav class="topbar">
   <div class="wrap">
-    <span class="brand">CAM3R</span>
+    <a class="back" href="../">&larr; Project page</a>
     <a href="#twoview">Two-view</a>
     <a href="#zeroshot">Zero-shot</a>
     <a href="#multiview">Multi-view</a>
@@ -34,41 +31,12 @@
   </div>
 </nav>
 
-<header class="hero">
+<header class="page-head">
   <div class="wrap">
-    <h1 class="title"><span class="mark">CAM3R</span></h1>
-    <p class="subtitle">Camera-Agnostic Model for 3D Reconstruction</p>
-
-    <p class="authors">
-      <span class="a">Namitha Guruprasad<sup>1</sup></span>,
-      <span class="a">Abhay Yadav<sup>1</sup></span>,
-      <span class="a">Rama Chellappa<sup>1</sup></span>,
-      <span class="a">Cheng Peng<sup>2</sup></span>
-    </p>
-    <p class="affil"><sup>1</sup> Johns Hopkins University, Baltimore, MD 21218, USA</p>
-    <p class="affil"><sup>2</sup> University of Virginia, Charlottesville, VA 22904, USA</p>
-
-    <div class="links">
-      <a href="https://github.com/nam1410/cam3r">Code</a>
-      <a class="ghost" href="#" aria-disabled="true">Paper <span class="tbd">TBD</span></a>
-      <a class="ghost" href="#" aria-disabled="true">arXiv <span class="tbd">TBD</span></a>
-    </div>
+    <h1>Interactive demo</h1>
+    <p>Live point clouds you can orbit and zoom, rendered in the browser.</p>
   </div>
 </header>
-
-<section class="plain" id="teaser">
-  <div class="wrap">
-    <figure class="center">
-      <img src="assets/teaser.jpg" width="1600" alt="CAM3R two-view and multi-view reconstructions on unseen 360Loc scenes, compared against recent 3D foundation models">
-      <figcaption>
-        CAM3R produces robust, feed-forward 3D reconstruction for two-view and multi-view
-        settings across disparate camera models, including pinhole, fisheye and panorama,
-        where recent 3D foundation models fail. The examples are unseen scenes from the
-        360Loc dataset, showing both raw two-view predictions and multi-view reconstructions.
-      </figcaption>
-    </figure>
-  </div>
-</section>
 
 <section id="twoview">
   <div class="wrap">
@@ -201,7 +169,7 @@
 <section id="multiview">
   <div class="wrap">
     <h2><span class="num">03</span>Multi-view reconstruction</h2>
-    <p class="lede narrow" style="margin-left:0">
+    <p class="lede">
       Ray-Aware Global Alignment fuses the pairwise predictions above into a single globally
       consistent scene by optimising poses and per-image scales with the ray directions frozen,
       so points may only slide along their own rays.
