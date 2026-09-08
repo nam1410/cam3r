@@ -182,9 +182,10 @@
 
     <h3>Ground truth and three methods, side by side</h3>
     <p class="lede">
-      Full-scene reconstructions: each panel is one whole scene fused from all of its views,
-      not one of the two-view pairs shown earlier on this page. Pick a benchmark to swap all
-      four panels.
+      Full-scene reconstructions, live in the browser: each panel is one whole scene fused from
+      all of its views, not one of the two-view pairs shown earlier on this page. Pick a
+      benchmark to swap all four clouds. The four panels share one camera, so a drag started in
+      any of them moves all four and the comparison is always from the same viewpoint.
     </p>
 
     <div class="widget" id="multiview-widget">
@@ -200,32 +201,45 @@
         <span class="src" data-slot="src"></span>
       </div>
 
-      <div class="shots">
-        <figure>
-          <img data-slot="gt" src="assets/multiview/pano2d3ds_gt.jpg"
-               width="800" height="534" loading="lazy" alt="">
-          <figcaption>Ground truth</figcaption>
-        </figure>
-        <figure>
-          <img data-slot="vggt" src="assets/multiview/pano2d3ds_vggt.jpg"
-               width="800" height="534" loading="lazy" alt="">
-          <figcaption>VGGT</figcaption>
-        </figure>
-        <figure>
-          <img data-slot="pi3" src="assets/multiview/pano2d3ds_pi3.jpg"
-               width="800" height="534" loading="lazy" alt="">
-          <figcaption><span class="sym">&#960;&#179;</span></figcaption>
-        </figure>
-        <figure class="ours">
-          <img data-slot="cam3r" src="assets/multiview/pano2d3ds_cam3r.jpg"
-               width="800" height="534" loading="lazy" alt="">
-          <figcaption>CAM3R</figcaption>
-        </figure>
+      <div class="viewer-toolbar">
+        <span class="hint">Drag to orbit &middot; scroll to zoom &middot; right-drag to pan</span>
+        <label>Point size
+          <input type="range" min="0.003" max="0.03" step="0.001" value="0.01" aria-label="Point size">
+        </label>
+        <button type="button" data-action="reset">Reset view</button>
       </div>
 
+      <div class="stage quad">
+        <div class="panel">
+          <span class="tag">Ground truth</span>
+          <canvas></canvas>
+          <div class="overlay"><div class="spinner"></div><p class="msg">Loading…</p></div>
+        </div>
+        <div class="panel">
+          <span class="tag">VGGT</span>
+          <canvas></canvas>
+          <div class="overlay"><div class="spinner"></div><p class="msg">Loading…</p></div>
+        </div>
+        <div class="panel">
+          <span class="tag"><span class="sym">&#960;&#179;</span></span>
+          <canvas></canvas>
+          <div class="overlay"><div class="spinner"></div><p class="msg">Loading…</p></div>
+        </div>
+        <div class="panel ours">
+          <span class="tag">CAM3R</span>
+          <canvas></canvas>
+          <div class="overlay"><div class="spinner"></div><p class="msg">Loading…</p></div>
+        </div>
+      </div>
+
+      <p class="viewer-note views" data-slot="views"></p>
+
       <p class="viewer-note">
-        Every screenshot is cropped to its content and fitted to a common frame, so the size of
-        a cloud within its panel carries no information about the scene.
+        Each cloud is subsampled to 100k points for the web and is drawn in the coordinate
+        frame its own method writes out, with no rotation applied, so the four panels can start
+        at different orientations. The methods reconstruct at very different scales, so every
+        cloud is recentred on its bounding sphere and scaled to unit radius at render time
+        only; the <code>.ply</code> files keep their original coordinates.
       </p>
     </div>
 
@@ -288,10 +302,22 @@ const ZEROSHOT = [
 ];
 
 const MULTIVIEW = [
-  { key: 'pano2d3ds',  name: '2D3DS',     source: 'panorama, fisheye and pinhole views' },
-  { key: 'pano360loc', name: '360Loc',    source: 'panorama, fisheye and pinhole views' },
-  { key: 'megadepth',  name: 'MegaDepth', source: 'pinhole views' },
-  { key: 'co3d',       name: 'CO3Dv2',    source: 'fisheye and pinhole views' }
+  { key: 'pano2d3ds', name: '2D3DS',
+    source: '10 panorama, fisheye and pinhole views, the same 10 for every method',
+    views: '' },
+  { key: 'pano360loc', name: '360Loc',
+    source: 'panorama, fisheye and pinhole views of the atrium scene',
+    views: 'The four panels here do not cover the same views. Ground truth and VGGT use ' +
+           'all 30 views of this group; CAM3R reconstructs 25 of them, because its global ' +
+           'alignment drops views that fall outside the largest connected component or fail ' +
+           'its pose-consistency check; the \u03c0\u00b3 run shown here covers a different ' +
+           '17-view group of the same scene.' },
+  { key: 'megadepth', name: 'MegaDepth',
+    source: '30 pinhole views, the same 30 for every method',
+    views: '' },
+  { key: 'co3d', name: 'CO3Dv2',
+    source: '20 fisheye and pinhole views, the same 20 for every method',
+    views: '' }
 ];
 
 boot(TWOVIEW, ZEROSHOT, MULTIVIEW);

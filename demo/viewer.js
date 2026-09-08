@@ -7,18 +7,21 @@
  * ------------
  * A WebGL context is a scarce resource: browsers keep roughly 8-16 alive per
  * page and silently drop the oldest ones beyond that.  Rather than instantiate
- * one renderer per example (which would need 17), each results section owns a
- * single viewer rig and swaps the point cloud when a tab is selected.  That
- * also means a visitor downloads one 1.8 MB cloud at a time instead of 30 MB
- * up front.
+ * one renderer per example (which would need 33), each results section owns a
+ * single viewer rig and swaps the point clouds when a tab is selected.  The
+ * page therefore holds seven contexts in total: two for the two-view
+ * comparison, one for the zero-shot example and four for the multi-view
+ * comparison.  It also means a visitor downloads one set of clouds at a time
+ * instead of every example up front.
  *
- * The two-view comparison uses two side-by-side canvases driven by one master
- * camera.  Both panels carry their own OrbitControls bound to that camera, so
- * a drag started on either side moves both; the slave camera copies the pose
- * every frame while keeping its own aspect ratio.  This is more reliable than
- * a single-canvas A/B toggle because the prediction and the ground truth stay
- * visible simultaneously, and it cannot desynchronise: there is only ever one
- * source of truth for the pose.
+ * Both comparisons use side-by-side canvases driven by one master camera: the
+ * two-view section with two panels, the multi-view section with four.  Every
+ * panel carries its own OrbitControls bound to that same camera and shares the
+ * one target object, so a drag, zoom or pan started in any panel moves all of
+ * them; the slave cameras copy the master pose every frame while keeping their
+ * own aspect ratio.  This is more reliable than a single-canvas toggle because
+ * the methods stay visible simultaneously, and it cannot desynchronise: there
+ * is only ever one source of truth for the pose.
  *
  * Clouds are normalised at render time (bounding sphere recentred, radius
  * scaled to 1) so that a prediction recovered up to an unknown global scale
@@ -32,8 +35,8 @@ import { PLYLoader } from 'three/addons/loaders/PLYLoader.js';
 
 const DEFAULT_POINT_SIZE = 0.010;
 
-/* The four panels of the multi-view comparison, in display order. The keys
-   are the filename stems under assets/multiview/. */
+/* The four panels of the multi-view comparison, in display order: the method
+   key used to build the .ply path, and the label used while loading. */
 const MULTIVIEW_METHODS = [
   ['gt', 'ground truth'],
   ['vggt', 'VGGT'],
@@ -109,7 +112,7 @@ function makePanel(el) {
 /* ------------------------------------------------------------------- rig */
 
 /**
- * A viewer rig owns one or two panels, a shared master camera and a render
+ * A viewer rig owns one or more panels, a shared master camera and a render
  * loop that only runs while the rig is on screen.
  */
 class Rig {
@@ -126,7 +129,7 @@ class Rig {
 
     this.controls = this.panels.map((p) => {
       const c = new OrbitControls(this.master, p.canvas);
-      c.enableDamping = false;      // two controls on one camera must not fight
+      c.enableDamping = false;      // several controls on one camera must not fight
       c.enablePan = true;
       c.screenSpacePanning = true;
       c.rotateSpeed = 0.9;
@@ -342,17 +345,6 @@ function wireTabs(root, onIndex) {
   select(0);
 }
 
-/**
- * A tabbed still-image gallery: same tab interaction as a viewer section, but
- * with no WebGL involved, so it keeps working in browsers that cannot run the
- * live viewers.
- */
-function wireGallery(rootId, examples, onSelect) {
-  const root = document.getElementById(rootId);
-  if (!root) return;
-  wireTabs(root, (i) => onSelect(root, examples[i]));
-}
-
 function checkWebGL() {
   try {
     const c = document.createElement('canvas');
@@ -367,22 +359,6 @@ function checkWebGL() {
 
 export function boot(TWOVIEW, ZEROSHOT, MULTIVIEW) {
   const guard = (fn) => { try { fn(); } catch (err) { console.error('[cam3r]', err); } };
-
-  // Wired before the WebGL check: these are stills, so the comparison works
-  // even where the live viewers cannot start.
-  guard(() => wireGallery(
-    'multiview-widget', MULTIVIEW,
-    (root, ex) => {
-      root.querySelector('[data-slot="name"]').textContent = ex.name;
-      root.querySelector('[data-slot="src"]').textContent = ex.source;
-      MULTIVIEW_METHODS.forEach(([key, label]) => {
-        const img = root.querySelector('[data-slot="' + key + '"]');
-        if (!img) return;
-        img.src = 'assets/multiview/' + ex.key + '_' + key + '.jpg';
-        img.alt = ex.name + ': ' + label + ' multi-view reconstruction';
-      });
-    }
-  ));
 
   if (!checkWebGL()) {
     document.querySelectorAll('.panel .overlay').forEach((o) => {
@@ -432,6 +408,21 @@ export function boot(TWOVIEW, ZEROSHOT, MULTIVIEW) {
       const mm = root.querySelector('[data-slot="matches"]');
       mm.src = ex.matches;
       mm.alt = ex.name + ': mutual-nearest-neighbour match quality for the pair';
+    }
+  ));
+
+  // Four panels, one per method, all driven by the rig's single master camera.
+  guard(() => wireSection(
+    'multiview-widget', MULTIVIEW,
+    (ex) => MULTIVIEW_METHODS.map(
+      ([key]) => 'assets/multiview_clouds/' + ex.key + '_' + key + '.ply'),
+    () => MULTIVIEW_METHODS.map(([, label]) => label),
+    (root, ex) => {
+      root.querySelector('[data-slot="name"]').textContent = ex.name;
+      root.querySelector('[data-slot="src"]').textContent = ex.source;
+      const note = root.querySelector('[data-slot="views"]');
+      note.textContent = ex.views || '';
+      note.hidden = !ex.views;
     }
   ));
 }
