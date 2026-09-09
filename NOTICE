@@ -1,0 +1,49 @@
+CAM3R: Camera-Agnostic Model for 3D Reconstruction
+Copyright (c) 2026-present Namitha Guruprasad, Abhay Yadav, Rama Chellappa, Cheng Peng
+Johns Hopkins University
+
+This project builds on the following works, whose source is included here and
+which remain under the copyright of their respective authors. DUSt3R, CroCo and
+UniK3D are licensed under CC BY-NC-SA 4.0. The DINOv2 and PyTorch3D subcomponents
+vendored inside UniK3D carry their own licences, noted with each entry below.
+
+====
+
+DUSt3R -- naver/dust3r
+https://github.com/naver/dust3r
+Copyright (C) 2024-present Naver Corporation
+Creative Commons Attribution-NonCommercial-ShareAlike 4.0
+  Files under dust3r/ derive from this project.
+
+====
+
+CroCo -- naver/croco
+https://github.com/naver/croco
+Copyright (C) 2022-present Naver Corporation
+Creative Commons Attribution-NonCommercial-ShareAlike 4.0
+  Files under croco/ are taken from this project.
+
+====
+
+UniK3D -- lpiccinelli-eth/UniK3D
+https://github.com/lpiccinelli-eth/UniK3D
+Copyright (c) Luigi Piccinelli
+Creative Commons Attribution-NonCommercial-ShareAlike 4.0
+  Files under UniK3D/ are taken from this project. CAM3R's Ray Module is
+  initialized from UniK3D pre-trained weights.
+
+====
+
+DINOv2 -- facebookresearch/dinov2
+https://github.com/facebookresearch/dinov2
+Copyright (c) Meta Platforms, Inc. and affiliates
+  Files under UniK3D/unik3d/models/metadinov2/ derive from this project and are
+  vendored unchanged from UniK3D.
+
+====
+
+PyTorch3D -- facebookresearch/pytorch3d
+https://github.com/facebookresearch/pytorch3d
+Copyright (c) Meta Platforms, Inc. and affiliates, BSD-style license
+  The k-nearest-neighbour CUDA/C++ sources under UniK3D/unik3d/ops/knn/ derive from
+  this project and are vendored unchanged from UniK3D.

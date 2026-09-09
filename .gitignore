@@ -1,0 +1,18 @@
+__pycache__/
+*.py[cod]
+*.so
+.DS_Store
+checkpoints/
+outputs/
+*.ply
+*.png
+*.log
+.venv/
+env/
+
+# local smoke-test outputs
+smoketest/
+
+# the project website ships subsampled point clouds and figures
+!docs/
+!docs/**

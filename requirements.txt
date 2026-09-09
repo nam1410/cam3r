@@ -1,0 +1,22 @@
+# CAM3R two-view inference, evaluation and training
+torch>=2.0
+torchvision
+numpy
+opencv-python
+pillow
+pillow-heif
+matplotlib
+scipy
+einops
+timm
+huggingface_hub
+safetensors
+tqdm
+trimesh
+open3d
+packaging
+setuptools      # pkg_resources, imported by unik3d.ops.losses.robust_loss
+tensorboard     # torch.utils.tensorboard, imported by the training loop
+wandb           # imported unconditionally by unik3d.utils
+# optional, guarded by try/except and not required:
+#   xformers, splatting
