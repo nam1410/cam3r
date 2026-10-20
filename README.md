@@ -47,9 +47,18 @@ Python 3.10+, PyTorch 2.0+, CUDA recommended. Both eval scripts accept `--device
 |---|---|---|
 | UniK3D adapter | Auto-downloaded from HuggingFace when the model is built | Always |
 | `DUSt3R_ViTLarge_BaseDecoder_512_dpt.pth` | DUSt3R authors, place in `checkpoints/` | Training |
-| `cam3r.pth` | **Not yet released.** The checkpoint is being uploaded and a link will be added here. | Inference, evaluation |
+| `cam3r.pth` | [huggingface.co/gnam8991/cam3r](https://huggingface.co/gnam8991/cam3r) | Inference, evaluation |
 
-> Until `cam3r.pth` is published, the code can be installed and inspected but not run. The commands below are complete and will work unchanged once the checkpoint is in `checkpoints/`.
+Download it into `checkpoints/` under the name the commands below expect:
+
+```bash
+mkdir -p checkpoints
+hf download gnam8991/cam3r cam3r_release_weights.pth --local-dir checkpoints
+mv checkpoints/cam3r_release_weights.pth checkpoints/cam3r.pth
+```
+
+The released file carries weights only; optimizer state was stripped, so it is for inference
+and evaluation, not for resuming training.
 
 Released weights inherit the CC BY-NC-SA 4.0 non-commercial restriction.
 
